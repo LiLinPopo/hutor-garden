@@ -1,6 +1,5 @@
-{"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}
-{"id":"1769023919232","name":"Баклажан","plantingDate":"2026-01-21","seedName":"Красный богатырь","plantCount":"15","createdAt":{"$$date":1769023919232},"_id":"hIK47VPFYI1XLJIH"}
-{"id":"1769023956900","name":"Перец","plantingDate":"2026-01-21","seedName":"Зеленый","plantCount":"20","createdAt":{"$$date":1769023956900},"_id":"vWUZMaMQWsuS1aw2"}
-{"id":"1769023956900","name":"Перец Болгарский","plantingDate":"2026-01-21","seedName":"Зеленый","plantCount":"20","createdAt":"2026-01-21T19:32:36.900Z","_id":"vWUZMaMQWsuS1aw2"}
 {"id":"1769024003127","name":"Перец болгарский красный","plantingDate":"2026-01-21","seedName":"красный","plantCount":"20","createdAt":{"$$date":1769024003127},"_id":"3z89e39ghF9I1uUw"}
+{"id":"1769023919232","name":"Баклажан","plantingDate":"2026-01-21","seedName":"Красный богатырь","plantCount":"15","createdAt":{"$$date":1769023919232},"_id":"hIK47VPFYI1XLJIH"}
+{"id":"1769023956900","name":"Перец Болгарский","plantingDate":"2026-01-21","seedName":"Зеленый","plantCount":"20","createdAt":"2026-01-21T19:32:36.900Z","_id":"vWUZMaMQWsuS1aw2"}
 {"id":"1769024026754","name":"Кабачок","plantingDate":"2026-01-21","seedName":"Просто","plantCount":"10","createdAt":{"$$date":1769024026754},"_id":"yMI7EWBBLJPYokkn"}
+{"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}

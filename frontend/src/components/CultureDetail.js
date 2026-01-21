@@ -1,16 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import NoteForm from './NoteForm';
+import {
+  Card,
+  Typography,
+  Button,
+  Space,
+  Descriptions,
+  List,
+  Tag,
+  Modal,
+  Form,
+  Input,
+  DatePicker,
+  InputNumber,
+  Select,
+  notification,
+  Popconfirm
+} from 'antd';
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  AppstoreAddOutlined
+} from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 const API_URL = 'http://localhost:5000/api';
+const { Title, Text } = Typography;
 
 const CultureDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [culture, setCulture] = useState(null);
     const [notes, setNotes] = useState([]);
-    const [showNoteForm, setShowNoteForm] = useState(false);
+    const [isNoteModalVisible, setIsNoteModalVisible] = useState(false);
+    const [editingNote, setEditingNote] = useState(null);
+    const [noteType, setNoteType] = useState('history');
+    const [form] = Form.useForm();
 
     useEffect(() => {
         fetchCulture();
@@ -24,71 +52,114 @@ const CultureDetail = () => {
             setCulture(foundCulture);
         } catch (error) {
             console.error('Error fetching culture:', error);
+            notification.error({
+                message: 'Ошибка',
+                description: 'Не удалось загрузить информацию о культуре'
+            });
         }
     };
 
     const fetchNotes = async () => {
         try {
             const response = await axios.get(`${API_URL}/cultures/${id}/notes`);
-            setNotes(response.data);
+            setNotes(response.data.sort((a, b) => 
+                new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
+            ));
         } catch (error) {
             console.error('Error fetching notes:', error);
         }
     };
 
-    const handleAddNote = async (noteData) => {
-        try {
-            await axios.post(`${API_URL}/notes`, {
-                ...noteData,
-                cultureId: id,
-                cultureName: culture?.name
+    const showNoteModal = (note = null) => {
+        setEditingNote(note);
+        if (note) {
+            setNoteType(note.type);
+            form.setFieldsValue({
+                ...note,
+                date: note.date ? dayjs(note.date) : dayjs(note.createdAt)
             });
-            fetchNotes();
-            setShowNoteForm(false);
-        } catch (error) {
-            console.error('Error adding note:', error);
+        } else {
+            setNoteType('history');
+            form.resetFields();
+            form.setFieldsValue({
+                date: dayjs()
+            });
         }
+        setIsNoteModalVisible(true);
     };
 
-    const handleAddHarvest = async (harvestData) => {
+    const handleNoteCancel = () => {
+        setIsNoteModalVisible(false);
+        setEditingNote(null);
+        form.resetFields();
+    };
+
+    const handleNoteSubmit = async (values) => {
         try {
-            await axios.post(`${API_URL}/harvests`, {
-                ...harvestData,
+            const data = {
+                ...values,
+                type: noteType,
+                date: values.date.format('YYYY-MM-DD'),
                 cultureId: id,
                 cultureName: culture?.name
-            });
+            };
+
+            if (editingNote) {
+                if (noteType === 'harvest') {
+                    await axios.put(`${API_URL}/harvests/${editingNote.id}`, {
+                        ...data,
+                        count: parseInt(data.count)
+                    });
+                }
+                await axios.put(`${API_URL}/notes/${editingNote.id}`, data);
+                
+                notification.success({
+                    message: 'Успех',
+                    description: 'Заметка успешно обновлена'
+                });
+            } else {
+                if (noteType === 'harvest') {
+                    await axios.post(`${API_URL}/harvests`, {
+                        ...data,
+                        count: parseInt(data.count)
+                    });
+                }
+                await axios.post(`${API_URL}/notes`, data);
+                
+                notification.success({
+                    message: 'Успех',
+                    description: 'Заметка успешно добавлена'
+                });
+            }
             
-            // Также добавляем как заметку
-            await axios.post(`${API_URL}/notes`, {
-                type: 'harvest',
-                title: 'Сбор урожая',
-                content: `Собран урожай: ${harvestData.count} шт.`,
-                date: harvestData.date,
-                cultureId: id,
-                cultureName: culture?.name,
-                count: harvestData.count
-            });
-            
+            setIsNoteModalVisible(false);
+            setEditingNote(null);
+            form.resetFields();
             fetchNotes();
-            setShowNoteForm(false);
         } catch (error) {
-            console.error('Error adding harvest:', error);
+            console.error('Error saving note:', error);
+            notification.error({
+                message: 'Ошибка',
+                description: 'Не удалось сохранить заметку'
+            });
         }
     };
 
     const handleDeleteNote = async (noteId) => {
-        if (window.confirm('Вы уверены, что хотите удалить эту заметку?')) {
-            try {
-                await axios.delete(`${API_URL}/notes/${noteId}`);
-                fetchNotes();
-            } catch (error) {
-                console.error('Error deleting note:', error);
-            }
+        try {
+            await axios.delete(`${API_URL}/notes/${noteId}`);
+            notification.success({
+                message: 'Успех',
+                description: 'Заметка успешно удалена'
+            });
+            fetchNotes();
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            notification.error({
+                message: 'Ошибка',
+                description: 'Не удалось удалить заметку'
+            });
         }
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('ru-RU');
     };
 
     if (!culture) {
@@ -97,74 +168,218 @@ const CultureDetail = () => {
 
     return (
         <div>
-            <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2>{culture.name}</h2>
-                    <button className="btn btn-secondary" onClick={() => navigate('/')}>
-                        ← Назад к списку
-                    </button>
-                </div>
-                
-                <div style={{ marginTop: '20px' }}>
-                    <p><strong>Дата посадки:</strong> {formatDate(culture.plantingDate)}</p>
-                    <p><strong>Название семян:</strong> {culture.seedName}</p>
-                    <p><strong>Количество кустов:</strong> {culture.plantCount}</p>
-                </div>
-            </div>
-
-            <div className="card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3>История и заметки</h3>
-                    <button 
-                        className="btn btn-primary"
-                        onClick={() => setShowNoteForm(!showNoteForm)}
-                    >
-                        {showNoteForm ? 'Отмена' : '+ Добавить заметку'}
-                    </button>
-                </div>
-
-                {showNoteForm && (
-                    <NoteForm 
-                        onAddNote={handleAddNote}
-                        onAddHarvest={handleAddHarvest}
-                        cultureName={culture.name}
-                    />
-                )}
-
-                <div className="notes-list">
-                    {notes.map(note => (
-                        <div 
-                            key={note.id} 
-                            className={`note-item ${note.type === 'harvest' ? 'harvest' : ''}`}
+            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+                <Card>
+                    <Space style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        marginBottom: 16 
+                    }}>
+                        <Title level={3} style={{ margin: 0 }}>
+                            {culture.name}
+                        </Title>
+                        <Button 
+                            icon={<ArrowLeftOutlined />}
+                            onClick={() => navigate('/')}
                         >
-                            <div className="note-date">
-                                {formatDate(note.date || note.createdAt)}
-                                {note.type === 'harvest' && ' 🎯 Сбор урожая'}
-                                <button 
-                                    className="btn btn-danger" 
-                                    style={{ float: 'right', padding: '2px 8px', fontSize: '12px' }}
-                                    onClick={() => handleDeleteNote(note.id)}
-                                >
-                                    Удалить
-                                </button>
-                            </div>
-                            <div className="note-content">
-                                {note.type === 'harvest' ? (
-                                    <div>
-                                        <strong>Собран урожай:</strong> {note.count} шт.
-                                        {note.content && <div>{note.content}</div>}
-                                    </div>
-                                ) : (
-                                    <div>
-                                        {note.title && <strong>{note.title}: </strong>}
-                                        {note.content}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+                            Назад к списку
+                        </Button>
+                    </Space>
+                    
+                    <Descriptions bordered column={2}>
+                        <Descriptions.Item label="Дата посадки">
+                            {culture.plantingDate ? dayjs(culture.plantingDate).format('DD.MM.YYYY') : '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Название семян">
+                            {culture.seedName || '-'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Количество кустов">
+                            <Tag color="green">{culture.plantCount} шт.</Tag>
+                        </Descriptions.Item>
+                    </Descriptions>
+                </Card>
+
+                <Card
+                    title="История и заметки"
+                    extra={
+                        <Button 
+                            type="primary" 
+                            icon={<PlusOutlined />}
+                            onClick={() => showNoteModal()}
+                        >
+                            Добавить заметку
+                        </Button>
+                    }
+                >
+                    <List
+                        itemLayout="vertical"
+                        dataSource={notes}
+                        renderItem={(note) => (
+                            <List.Item
+                                key={note.id}
+                                actions={[
+                                    <Button
+                                        type="link"
+                                        icon={<EditOutlined />}
+                                        size="small"
+                                        onClick={() => showNoteModal(note)}
+                                    >
+                                        Редактировать
+                                    </Button>,
+                                    <Popconfirm
+                                        title="Удалить заметку?"
+                                        description="Вы уверены, что хотите удалить эту заметку?"
+                                        onConfirm={() => handleDeleteNote(note.id)}
+                                        okText="Да"
+                                        cancelText="Нет"
+                                    >
+                                        <Button
+                                            type="link"
+                                            danger
+                                            icon={<DeleteOutlined />}
+                                            size="small"
+                                        >
+                                            Удалить
+                                        </Button>
+                                    </Popconfirm>
+                                ]}
+                            >
+                                <List.Item.Meta
+                                    avatar={
+                                        note.type === 'harvest' ? (
+                                            <Tag color="orange" icon={<AppstoreAddOutlined />}>
+                                                Сбор урожая
+                                            </Tag>
+                                        ) : (
+                                            <Tag color="blue">Заметка</Tag>
+                                        )
+                                    }
+                                    title={
+                                        <Space>
+                                            <Text strong>
+                                                {note.type === 'harvest' ? `Сбор урожая: ${note.count} шт.` : note.title}
+                                            </Text>
+                                            <Text type="secondary">
+                                                {dayjs(note.date || note.createdAt).format('DD.MM.YYYY')}
+                                            </Text>
+                                        </Space>
+                                    }
+                                    description={
+                                        note.type === 'harvest' ? 
+                                        (note.content || note.notes || '') : 
+                                        note.content
+                                    }
+                                />
+                            </List.Item>
+                        )}
+                    />
+                </Card>
+            </Space>
+
+            <Modal
+                title={editingNote ? 'Редактировать заметку' : 'Новая заметка'}
+                open={isNoteModalVisible}
+                onCancel={handleNoteCancel}
+                footer={null}
+                destroyOnClose
+                width={600}
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={handleNoteSubmit}
+                    autoComplete="off"
+                >
+                    <Form.Item
+                        name="type"
+                        label="Тип заметки"
+                        initialValue="history"
+                    >
+                        <Select onChange={setNoteType}>
+                            <Select.Option value="history">История/Заметка</Select.Option>
+                            <Select.Option value="harvest">Сбор урожая</Select.Option>
+                        </Select>
+                    </Form.Item>
+
+                    {noteType === 'history' ? (
+                        <>
+                            <Form.Item
+                                name="title"
+                                label="Заголовок"
+                                rules={[
+                                    { required: true, message: 'Введите заголовок' }
+                                ]}
+                            >
+                                <Input placeholder="Например: День 1. Посадка" />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="content"
+                                label="Содержание"
+                                rules={[
+                                    { required: true, message: 'Введите содержание' }
+                                ]}
+                            >
+                                <Input.TextArea 
+                                    rows={3} 
+                                    placeholder="Например: Посадил в землю перец..." 
+                                />
+                            </Form.Item>
+                        </>
+                    ) : (
+                        <>
+                            <Form.Item
+                                name="count"
+                                label="Количество собранного"
+                                rules={[
+                                    { required: true, message: 'Введите количество' },
+                                    { type: 'number', min: 1, message: 'Минимальное количество: 1' }
+                                ]}
+                            >
+                                <InputNumber 
+                                    min={1}
+                                    style={{ width: '100%' }}
+                                    placeholder="Например: 15"
+                                />
+                            </Form.Item>
+
+                            <Form.Item
+                                name="content"
+                                label="Примечания"
+                            >
+                                <Input.TextArea 
+                                    rows={3} 
+                                    placeholder="Например: Урожай хороший, плоды крупные..." 
+                                />
+                            </Form.Item>
+                        </>
+                    )}
+
+                    <Form.Item
+                        name="date"
+                        label="Дата"
+                        rules={[
+                            { required: true, message: 'Выберите дату' }
+                        ]}
+                    >
+                        <DatePicker 
+                            format="DD.MM.YYYY"
+                            style={{ width: '100%' }}
+                        />
+                    </Form.Item>
+
+                    <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                        <Space>
+                            <Button onClick={handleNoteCancel}>
+                                Отмена
+                            </Button>
+                            <Button type="primary" htmlType="submit">
+                                {editingNote ? 'Сохранить' : 'Добавить'}
+                            </Button>
+                        </Space>
+                    </Form.Item>
+                </Form>
+            </Modal>
         </div>
     );
 };

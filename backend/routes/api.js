@@ -73,6 +73,20 @@ router.delete('/notes/:id', (req, res) => {
     });
 });
 
+router.put('/notes/:id', (req, res) => {
+    notes.update({ id: req.params.id }, { $set: req.body }, {}, (err) => {
+        if (err) res.status(500).json({ error: err });
+        else res.json({ success: true });
+    });
+});
+
+router.put('/harvests/:id', (req, res) => {
+    harvests.update({ id: req.params.id }, { $set: req.body }, {}, (err) => {
+        if (err) res.status(500).json({ error: err });
+        else res.json({ success: true });
+    });
+});
+
 // Сбор урожая
 router.get('/harvests', (req, res) => {
     harvests.find({}, (err, docs) => {
