@@ -1,0 +1,4 @@
+{"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}
+{"id":"1769024176018","type":"harvest","count":3,"date":"2026-01-30","notes":"Хорошие сочные перцы","cultureId":"1769024003127","cultureName":"Перец болгарский красный","createdAt":{"$$date":1769024176018},"_id":"p3AtbkPktcbbgVso"}
+{"id":"1769024212307","type":"harvest","count":5,"date":"2026-02-26","notes":"Не очень большие, один вообще маленький","cultureId":"1769024003127","cultureName":"Перец болгарский красный","createdAt":{"$$date":1769024212307},"_id":"NZeJ1RWCUVPQ5ff7"}
+{"id":"1769024388701","type":"harvest","count":7,"date":"2026-01-21","notes":"","cultureId":"1769023919232","cultureName":"Баклажан","createdAt":{"$$date":1769024388701},"_id":"uBbgtvHOXZqTVM8z"}

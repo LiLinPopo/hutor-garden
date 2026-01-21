@@ -1,0 +1,6 @@
+{"$$indexCreated":{"fieldName":"id","unique":true,"sparse":false}}
+{"id":"1769024091222","type":"history","title":"Посадка семян в горшок","content":"Куплена земля, сделано 20 баночек и посажены семена в них","date":"2026-01-21","cultureId":"1769024003127","cultureName":"Перец болгарский красный","createdAt":{"$$date":1769024091222},"_id":"11Y427qlSRQoQGss"}
+{"id":"1769024122882","type":"history","title":"Полив рассады","content":"полив рассадных ","date":"2026-01-22","cultureId":"1769024003127","cultureName":"Перец болгарский красный","createdAt":{"$$date":1769024122882},"_id":"ZKZGpyI8hvux4lFy"}
+{"id":"1769024176031","type":"harvest","title":"Сбор урожая","content":"Собран урожай: 3 шт.","date":"2026-01-30","cultureId":"1769024003127","cultureName":"Перец болгарский красный","count":3,"createdAt":{"$$date":1769024176031},"_id":"CfILWNv0T6vnhDCU"}
+{"id":"1769024212316","type":"harvest","title":"Сбор урожая","content":"Собран урожай: 5 шт.","date":"2026-02-26","cultureId":"1769024003127","cultureName":"Перец болгарский красный","count":5,"createdAt":{"$$date":1769024212316},"_id":"vImltsgMYvTfoty6"}
+{"id":"1769024388711","type":"harvest","title":"Сбор урожая","content":"Собран урожай: 7 шт.","date":"2026-01-21","cultureId":"1769023919232","cultureName":"Баклажан","count":7,"createdAt":{"$$date":1769024388711},"_id":"ObrVtMPz0h245sXD"}
